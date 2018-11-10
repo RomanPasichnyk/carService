@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Car service</title>
+	<link href="public/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	
+	<div class="container text-center">
+		<h2>Car service</h2>
+		
+		<div class="row">
+			<form id="addCarForm">
+				<div class="form-group">
+					<label>Manufacturer</label>
+					<input type="text" class="form-control" id="carManufacturer"></input>
+				</div>
+				<div class="form-group">
+					<label>Model</label>
+					<input type="text" class="form-control" id="carModel"></input>
+				</div>
+				<div class="form-group">
+					<label>Reg number</label>
+					<input type="text" class="form-control" id="carRegNumber"></input>
+				</div>
+				<div class="form-group">
+					<label>Engine capacity</label>
+					<input type="number" step="0.1" class="form-control" id="carEngCapacity"></input>
+				</div>
+				<div class="form-group">
+					<label>Fuel type</label>
+					<select id="carFuelType", class="form-control">
+						<option value="PETROL">Petrol</option>
+						<option value="DIESEL">Diesel</option>
+						<option value="ELECTRO">Electro</option>
+						<option value="GAS">Gas</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Body type</label>
+					<select id="carBodyType", class="form-control">
+						<option value="HATCHBACK">Hatchback</option>
+						<option value="SEDAN">Sedan</option>
+						<option value="SUV">Suv</option>
+						<option value="CROSSOVER">Crossover</option>
+						<option value="COUPE">Coupe</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Problem descr</label>
+					<textarea class="form-control" id="carProblem"></textarea>
+				</div>
+				<div class="form-group">
+					<button class="btn btn-success form-control">Add car</button>
+				</div>
+				
+			</form>
+		</div>
+		
+		<table class="table" id="carsTable">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Manufacturer</th>
+					<th>Model</th>
+					<th>Eng.Capacity</th>
+					<th>Fuel Type</th>
+					<th>Body Type</th>
+					<th>Reg number</th>
+					<th>Problem</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		
+	</div>
+	
+	<script src="public/js/jquery.min.js"></script>
+	<script src="public/js/bootstrap.min.js"></script>
+	
+	<script>
+		let serverURL = "http://localhost:8080/";
+		$(document).ready(function() {
+			getCars();
+			
+			$("#addCarForm").submit(function(e) {
+				e.preventDefault();
+				addCar();
+			});
+			
+		});
+		
+		function addCar() {
+			let carManufacturer = $("#carManufacturer").val();
+			let carModel = $("#carModel").val();
+			let carRegNumber = $("#carRegNumber").val();
+			let carEngCap = $("#carEngCapacity").val();
+			let carFuelType = $("#carFuelType").val();
+			let carBodyType = $("#carBodyType").val();
+			let carProblem = $("#carProblem").val();
+			
+			let car = {
+				manufacturer: carManufacturer,
+				model: carModel,
+				regNumber: carRegNumber,
+				engCap: carEngCap,
+				fuel: carFuelType,
+				body: carBodyType, 
+				problem: carProblem
+			};
+			console.log(car);
+			
+			$.ajax({
+				url: serverURL + "cars",
+				method: "POST",
+				dataType: "json",
+				contentType: "application/json",
+				data: JSON.stringify(car),
+				complete: function(data) {
+					if(data.status==201){
+						alert("Car added");
+						$("#carsTable tbody").empty();
+						getCars();
+						$("#addCarForm")[0].reset();
+					};
+
+				}
+				
+			});
+			
+		}
+		
+		function getCars() {
+			$.ajax({
+				url: serverURL + "cars",
+				method: "GET", 
+				dataType: "json",
+				contentType: "application/json",
+				success: function(response) {
+					console.log(response);
+					
+					$.each(response, function(key, value) {
+						$("#carsTable tbody").append(
+							`
+							<tr>
+								<td>${value.id}</td>
+								<td>${value.manufacturer}</td>
+								<td>${value.model}</td>
+								<td>${value.engCap}</td>
+								<td>${value.fuel}</td>
+								<td>${value.body}</td>
+								<td>${value.regNumber}</td>
+								<td>${value.problem}</td>
+							</tr>
+							`
+						);
+					})
+				}
+			})
+		}
+	</script>
+	
+</body>
+</html>
